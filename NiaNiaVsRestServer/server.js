@@ -11,7 +11,7 @@ persons = { person:[] };
 
 function generateId(data){
     const hash = crypto.createHash('sha256');
-          hash.update(data);
+          hash.update(data + new Date().toUTCString());
 
     return hash.digest('hex');
 }
@@ -37,8 +37,10 @@ function getHandler(request, response) {
 
     var key = request.url.split('/')[2];
     var searchedVal = request.url.split('/')[3];
+
     var found = false;
     var record;
+
     request.on('data', function (data) {
 
         for (var i in persons["person"]){
@@ -60,6 +62,70 @@ function getHandler(request, response) {
 
 }
 
+function putHandler(request, response) {
+    var key = request.url.split('/')[2];
+    var searchedVal = request.url.split('/')[3];
+    var found = false;
+
+    request.on('data', function (data){
+
+        data = JSON.parse(data);
+
+        for (var i in persons["person"]){
+
+            if(persons["person"][i][key] === searchedVal)
+            {
+                persons["person"].splice(i, 1);
+                found = true;
+                break;
+            }
+        }
+
+        persons["person"].push(data);
+
+        if(found === true)
+            response.write(JSON.stringify({respons: "The object was overrided"}));
+        else
+            response.write(JSON.stringify({respons: "The object was created"}));
+
+        response.end();
+
+        console.log(persons);
+    });
+}
+
+function deleteHandler(request, response) { //copyied from put - have to be changed of obviously
+    var key = request.url.split('/')[2];
+    var searchedVal = request.url.split('/')[3];
+    var found = false;
+
+    request.on('data', function (data){
+
+        data = JSON.parse(data);
+
+        for (var i in persons["person"]){
+
+            if(persons["person"][i][key] === searchedVal)
+            {
+                persons["person"].splice(i, 1);
+                found = true;
+                break;
+            }
+        }
+
+        persons["person"].push(data);
+
+        if(found === true)
+            response.write(JSON.stringify({respons: "The object was overrided"}));
+        else
+            response.write(JSON.stringify({respons: "The object was created"}));
+
+        response.end();
+
+        console.log(persons);
+    });
+}
+
 function handleRequest(request, response){
 
         switch(request.method){
@@ -68,9 +134,15 @@ function handleRequest(request, response){
                 break;
 
             case 'GET':
-                //console.log(persons);
                 getHandler(request, response);
                 break;
+
+            case 'PUT':
+                putHandler(request, response);
+                break;
+
+            case 'DELETE':
+
         }
 }
 
