@@ -97,6 +97,7 @@ function putHandler(request, response) {
 function deleteHandler(request, response) { //copyied from put - have to be changed of obviously
     var key = request.url.split('/')[2];
     var searchedVal = request.url.split('/')[3];
+
     var found = false;
 
     request.on('data', function (data){
@@ -104,7 +105,6 @@ function deleteHandler(request, response) { //copyied from put - have to be chan
         data = JSON.parse(data);
 
         for (var i in persons["person"]){
-
             if(persons["person"][i][key] === searchedVal)
             {
                 persons["person"].splice(i, 1);
@@ -113,10 +113,51 @@ function deleteHandler(request, response) { //copyied from put - have to be chan
             }
         }
 
-        persons["person"].push(data);
+        if(found === true)
+            response.write(JSON.stringify({respons: "The object existed"}));
+        else
+            response.write(JSON.stringify({respons: "The object didn't exist"}));
+
+        response.end();
+
+        console.log(persons);
+    });
+}
+
+function patchHandler(request, response) {
+    var key = request.url.split('/')[2];
+    console.log(typeof (key));
+    var searchedVal = request.url.split('/')[3];
+    var found = false;
+
+    console.log(key, searchedVal);
+    request.on('data', function (data){
+
+        data = JSON.parse(data);
+
+        for (var i in persons["person"]){
+            console.log('--------------');
+            console.log((persons["person"][i])[key]);
+            console.log('--------------');
+            if(persons["person"][i]['id'] === searchedVal)
+            {
+                var prev = persons["person"][i];
+
+                for(var key in prev){
+                    data[key] = prev[key];
+                }
+                console.log(data);
+                persons['person'][i] = data;
+                found = true;
+                break;
+            }
+        }
+
+        if(found == false)
+            persons["person"].push(data);
 
         if(found === true)
-            response.write(JSON.stringify({respons: "The object was overrided"}));
+            response.write(JSON.stringify({respons: "The object have new attributes"}));
         else
             response.write(JSON.stringify({respons: "The object was created"}));
 
@@ -125,6 +166,8 @@ function deleteHandler(request, response) { //copyied from put - have to be chan
         console.log(persons);
     });
 }
+
+
 
 function handleRequest(request, response){
 
@@ -142,6 +185,12 @@ function handleRequest(request, response){
                 break;
 
             case 'DELETE':
+                deleteHandler(request, response);
+                break;
+
+            case 'PATCH':
+                patchHandler(request, response);
+                break;
 
         }
 }
