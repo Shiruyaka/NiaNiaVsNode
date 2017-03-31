@@ -105,6 +105,7 @@ function deleteHandler(request, response) { //copyied from put - have to be chan
         data = JSON.parse(data);
 
         for (var i in persons["person"]){
+            console.log(persons["person"][i][key]);
             if(persons["person"][i][key] === searchedVal)
             {
                 persons["person"].splice(i, 1);
@@ -126,25 +127,24 @@ function deleteHandler(request, response) { //copyied from put - have to be chan
 
 function patchHandler(request, response) {
     var key = request.url.split('/')[2];
-    console.log(typeof (key));
     var searchedVal = request.url.split('/')[3];
     var found = false;
 
-    console.log(key, searchedVal);
-    request.on('data', function (data){
 
+
+    //console.log(key, searchedVal);
+
+    request.on('data', function (data){
         data = JSON.parse(data);
 
+
         for (var i in persons["person"]){
-            console.log('--------------');
-            console.log((persons["person"][i])[key]);
-            console.log('--------------');
-            if(persons["person"][i]['id'] === searchedVal)
+            if(persons["person"][i][key] === searchedVal)
             {
                 var prev = persons["person"][i];
 
-                for(var key in prev){
-                    data[key] = prev[key];
+                for(var jsKey in prev){
+                    data[jsKey] = prev[jsKey];
                 }
                 console.log(data);
                 persons['person'][i] = data;

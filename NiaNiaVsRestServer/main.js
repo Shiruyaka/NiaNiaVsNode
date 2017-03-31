@@ -162,6 +162,14 @@ setTimeout(function () {
     makePatchRequest('id', recvId['id'][0]['id'],
         JSON.stringify({age:21, puppy:"Nia Nia"}));
 
+    makePatchRequest('id', '0061269e94cf1b4436725434e06e8a8d4d8f156c9073a8c30c42f7dad93ad63f',
+        JSON.stringify({'id':'0061269e94cf1b4436725434e06e8a8d4d8f156c9073a8c30c42f7dad93ad63f',
+            'name' : 'Agatka',
+            'puppy': 'Weeee'
+        })
+
+    )
+
     }, 1000);
 
 
