@@ -168,6 +168,11 @@ setTimeout(function () {
             'puppy': 'Weeee'
         })
 
+    );
+
+    makePatchRequest('id', recvId['id'][1]['id'],
+        JSON.stringify({puppy: 'Fafeć'})
+
     )
 
     }, 1000);
