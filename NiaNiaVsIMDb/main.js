@@ -7,6 +7,8 @@ urlForFindActor = 'http://www.imdb.com/find?ref_=nv_sr_fn&q=Imie+Nazwisko&s=all'
 urlToActor = 'http://www.imdb.com';
 webUrl = 'http://www.imdb.com';
 films = [];
+i = 0;
+credits = 0;
 
 function findActor(actorName, actorSurname) {
 
@@ -24,6 +26,7 @@ function findActor(actorName, actorSurname) {
 
                 if(data.text() === actor){
                     urlToActor += data.attr('href');
+                    console.log(urlToActor);
                     takeMuwis();
                 }
             });
@@ -33,9 +36,9 @@ function findActor(actorName, actorSurname) {
 
 function predicateBy(prop){
     return function(a,b){
-        if( a[prop] > b[prop]){
+        if( a[prop] < b[prop]){
             return 1;
-        }else if( a[prop] < b[prop] ){
+        }else if( a[prop] > b[prop] ){
             return -1;
         }
         return 0;
@@ -49,20 +52,26 @@ function takeMuwis(){
 
             $('#filmo-head-actor').filter(function () {
               var data = $(this);
-
-              console.log(data.contents()[6].data);
+                credits = (parseInt(data.contents()[6].data.match(/\d/g).join("")));
             });
 
-            $('.filmo-category-section [id^=actor] a[href^="/title/"]').filter(function () {
+            $('#filmo-head-actress').filter(function () {
                 var data = $(this);
-                //console.log(data.);
+                credits = (parseInt(data.contents()[6].data.match(/\d/g).join("")));
+            });
+
+            $('.filmo-category-section [id^=actor] :not(.filmo-episodes) a[href^="/title/"]').filter(function () {
+                var data = $(this);
                 getInformationAboutFilm(data.attr('href'));
             });
 
-            films.sort(predicateBy('raiting'));
+            $('.filmo-category-section [id^=actress] a[href^="/title/"]:not(.filmo-episodes)').filter(function () {
+                var data = $(this);
+                getInformationAboutFilm(data.attr('href'));
+            });
 
-            console.log(films);
-
+        }else{
+            console.log(error);
         }
     })
 }
@@ -81,12 +90,9 @@ function getInformationAboutFilm(key) {
                 json.release = data.text();
             });
 
-            $('.ratingValue :nth-child(1) span').filter(function () {
+            $('.ratingValue [itemprop=ratingValue]').filter(function () {
                 var data = $(this);
                 json.rating = data.text();
-
-                if(json.rating = "")
-                    json.raiting = 0;
             });
 
             $('.title_wrapper>h1').filter(function () {
@@ -97,12 +103,26 @@ function getInformationAboutFilm(key) {
 
             films.push(json);
 
-            console.log(films);
+            ++i;
+
+            if(i === credits){
+
+                films.sort(predicateBy("rating"));
+                    for(var j = 0; j < 3; ++j){
+                        console.log(films[j]['title']);
+                    }
+
+
+
+            }
         }
     });
 }
 
-findActor("Tom", "Hanks");
+
+
+findActor("Ana", "de Armas");
+//getInformationAboutFilm('/title/tt0243585/?ref_=nm_flmg_act_30');
 /*request(url, function(error, response, html){
  if(!error){
  var $ = cheerio.load(html);
