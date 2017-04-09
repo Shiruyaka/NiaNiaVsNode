@@ -128,7 +128,7 @@ function getInformationAboutFilm(key) {
 actors = [];
 
 actors.push({Imie:"Kunal", Nazwisko:"Nayyar"});
-actors.push({Imie:"Michalina", Nazwisko:"Labacz"});
+actors.push({Imie:"Johnny", Nazwisko:"Galecki"});
 
 movies = [];
 
@@ -158,8 +158,6 @@ function getLinkToActor(webUrl, actor, callback){
 
 function getLinksToFilms(webUrl, movies, ct){
 
-    console.log(ct);
-    console.log(webUrl);
     request(webUrl, function (error, response, html) {
         if(!error){
             var $ = cheerio.load(html);
@@ -195,9 +193,8 @@ function compareActorsMuvis(list){
         urlForFindActor = urlForFindActor.replace("Imie", list[j]["Imie"]).replace("Nazwisko", list[j]["Nazwisko"]);
 
         getLinkToActor(urlForFindActor, actorName, function (url) {
-            console.log(url);
+
             movies.push({links: []});
-            console.log(movies[0]['links']);
             getLinksToFilms(url, movies, ct);
             ++ct;
         });
