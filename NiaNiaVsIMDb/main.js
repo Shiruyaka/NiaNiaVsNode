@@ -7,6 +7,7 @@ urlForFindActor = 'http://www.imdb.com/find?ref_=nv_sr_fn&q=Imie+Nazwisko&s=all'
 urlToActor = 'http://www.imdb.com';
 webUrl = 'http://www.imdb.com';
 films = [];
+top3films = {};
 i = 0;
 credits = 0;
 
@@ -17,7 +18,10 @@ function findActor(actorName, actorSurname) {
 
     var actor = actorName + " " + actorSurname;
 
+
     request(urlForFindActor, function (error, response, html)   {
+        urlToActor = 'http://www.imdb.com';
+        console.log(urlForFindActor);
         if(!error){
             var $ = cheerio.load(html);
 
@@ -109,19 +113,26 @@ function getInformationAboutFilm(key) {
 
                 films.sort(predicateBy("rating"));
                     for(var j = 0; j < 3; ++j){
-                        console.log(films[j]['title']);
+                        //console.log(films[j]['title']);
+                        top3films[j] = films[j];
                     }
-
-
-
+                    console.log(top3films);
             }
         }
     });
 }
 
 
+function compareActorsMuvis(first_name, first_surname, second_name, second_surname){
+
+}
+
+
+// zerowanie films po każdej funkcji i, films, top3films ?
+// urlToFindActor potem nie zawiera imie, nazwisko i nie może wyszukiwać kolejny osob, ale i tak asynchronicznie :<
 
 findActor("Ana", "de Armas");
+
 //getInformationAboutFilm('/title/tt0243585/?ref_=nm_flmg_act_30');
 /*request(url, function(error, response, html){
  if(!error){
