@@ -76,6 +76,6 @@ function makeCompareRequest(name_1, surname_1, name_2, surname_2, data) {
     req.end();
 }
 
-//makeUrlRequest("http://www.imdb.com/title/tt3682448/?ref_=nm_flmg_act_9", 'wut');
+makeUrlRequest("http://www.imdb.com/title/tt3682448/?ref_=nm_flmg_act_9", 'wut');
 //makeNameRequest("Tom", "Hanks", "wut");
-makeCompareRequest('Matt', 'Damon', 'Robin', 'Williams', 'wut');
+//makeCompareRequest('Matt', 'Damon', 'Robin', 'Williams', 'wut');

@@ -3,8 +3,8 @@ var request = require('request');
 var cheerio = require('cheerio');
 var http = require('http');
 var url = require('url');
+var events = require('events');
 
-url = 'http://www.imdb.com/title/tt1229340/';
 templateForActor = 'http://www.imdb.com/find?ref_=nv_sr_fn&q=Imie+Nazwisko&s=all';
 urlToActor = 'http://www.imdb.com';
 webUrl = 'http://www.imdb.com';
@@ -80,7 +80,7 @@ function takeMuwis(){
         }else{
             console.log(error);
         }
-    })
+    });
 }
 
 
@@ -136,6 +136,7 @@ movies = [];
 
 function getLinkToActor(webUrl, actor, callback){
 
+    console.log(actor);
     request(webUrl, function (error, response, html)
     {
         urlToActor = 'http://www.imdb.com';
@@ -146,7 +147,7 @@ function getLinkToActor(webUrl, actor, callback){
                 var data = $(this);
 
                 if(data.text() === actor){
-
+                    console.log("Tutej");
                     urlToActor += data.attr('href');
                     callback(urlToActor);
                 }
@@ -181,7 +182,7 @@ function getLinksToFilms(webUrl, movies, ct){
 }
 
 
-function compareActorsMuvis(list){
+function compareActorsMuvis(list, callback){
 
     var urlForFindActor;
     var actorName;
@@ -214,9 +215,10 @@ function compareActorsMuvis(list){
                 }
             }
         }
-        wspólneFilmy = commonFilms
-        console.log(commonFilms);
+        callback(commonFilms);
     }, 100000);
+
+
 }
 
 
@@ -238,10 +240,64 @@ function UrlHandler(request, response) {
     });
 }
 
+
+function getLinksToMovies(evList){
+    console.log('Tabletka');
+    credits = 1000;
+    links = [];
+    ct = 0;
+
+    request(urlToActor, function (error, response, html) {
+        if(!error){
+            var $ = cheerio.load(html);
+
+            $('#filmo-head-actor').filter(function () {
+                var data = $(this);
+                credits = (parseInt(data.contents()[6].data.match(/\d/g).join("")));
+            });
+
+            $('#filmo-head-actress').filter(function () {
+                var data = $(this);
+                credits = (parseInt(data.contents()[6].data.match(/\d/g).join("")));
+            });
+
+            $('.filmo-category-section [id^=actor] :not(.filmo-episodes) a[href^="/title/"]').filter(function () {
+                var data = $(this);
+                links.push(data.attr('href'));
+                ++ct;
+
+                if(ct === credits)
+                    callback(credits, links);
+                //getInformationAboutFilm(data.attr('href'));
+            });
+
+            $('.filmo-category-section [id^=actress] a[href^="/title/"]:not(.filmo-episodes)').filter(function () {
+                var data = $(this);
+                links.push(data.attr('href'));
+                ++ct;
+
+                if(ct === credits)
+                    evList.emit('endDownloadingLinks', credits, links);
+                    callback(credits, links);
+                //getInformationAboutFilm(data.attr('href'));
+            });
+        }else{
+            console.log(error);
+        }
+    });
+}
+
+function CollectInformation
+
 function NameHandler(request, response) {
+
+
     full_name_actor = request.url.replace('/actor=', '');
     actor_name = full_name_actor.split('_')[0];
     actor_surname = full_name_actor.split('_')[1];
+
+    urlForFindActor = templateForActor;
+    urlForFindActor = urlForFindActor.replace("Imie", actor_name).replace("Nazwisko", actor_surname);
 
     result = {"name":full_name_actor, 'films': '', 'top 3': ''};
 
@@ -250,7 +306,11 @@ function NameHandler(request, response) {
 
     request.on('data', function (data) {
 
-        findActor(actor_name, actor_surname);
+        getLinkToActor(urlForFindActor, actor_name + " " + actor_surname, function (urlToActor) {
+            getLinksToMovies(urlToActor, function (credits, links) {
+
+            });
+        });
 
         setTimeout(function () {
             result['films'] = films;
@@ -274,23 +334,17 @@ function CompareHandler (request, response) {
     surname2 = full_name_actor.split('_')[3];
 
     actors = [];
-    wspólneFilmy = 0;
+    wspolneFilmy = 0;
 
     actors.push({Imie: name1, Nazwisko: surname1});
     actors.push({Imie: name2, Nazwisko: surname2});
 
     console.log(actors);
 
-    compareActorsMuvis(actors);
-
-    setTimeout(function () {
-        console.log(wspólneFilmy);
-        response.write(JSON.stringify({'common films': wspólneFilmy}));
+    compareActorsMuvis(actors, function (commonFilmes) {
+        response.write(JSON.stringify({'common films': commonFilmes}));
         response.end();
-
-    }, 100000);
-
-
+    });
 
 }
 
@@ -311,9 +365,6 @@ function handleRequest(request, response){
                 break;
         }
 }
-
-
-
 function runServer() {
 
     var server = http.createServer(handleRequest);
