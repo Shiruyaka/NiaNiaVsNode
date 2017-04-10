@@ -1,6 +1,8 @@
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
+var http = require('http');
+var url = require('url');
 
 url = 'http://www.imdb.com/title/tt1229340/';
 templateForActor = 'http://www.imdb.com/find?ref_=nv_sr_fn&q=Imie+Nazwisko&s=all';
@@ -8,8 +10,9 @@ urlToActor = 'http://www.imdb.com';
 webUrl = 'http://www.imdb.com';
 films = [];
 top3films = {};
-//i = 0;
+i = 0;
 credits = 0;
+wspólneFilmy = 0;
 
 function findActor(actorName, actorSurname) {
     var urlForFindActor = templateForActor;
@@ -116,7 +119,6 @@ function getInformationAboutFilm(key) {
                         //console.log(films[j]['title']);
                         top3films[j + 1] = films[j];
                     }
-                    console.log(top3films);
                 i= 0;
 
             }
@@ -202,7 +204,7 @@ function compareActorsMuvis(list){
 
     setTimeout(function () {
 
-        console.log(movies);
+//        console.log(movies);
 
         var commonFilms = 0;
         for(var i = 0; i < movies[0]['links'].length; i++){
@@ -212,42 +214,120 @@ function compareActorsMuvis(list){
                 }
             }
         }
+        wspólneFilmy = commonFilms
         console.log(commonFilms);
-    }, 10000);
+    }, 100000);
 }
 
 
-// zerowanie films po każdej funkcji i, films, top3films ?
-// urlToFindActor potem nie zawiera imie, nazwisko i nie może wyszukiwać kolejny osob, ale i tak asynchronicznie :<
+function UrlHandler(request, response) {
+    movie_url = request.url.match('/title/.*')[0];
 
-//findActor("Ana", "de Armas");
-compareActorsMuvis(actors);
-//getInformationAboutFilm('/title/tt0243585/?ref_=nm_flmg_act_30');
-/*request(url, function(error, response, html){
- if(!error){
- var $ = cheerio.load(html);
+    request.on('data', function (data) {
 
- var title, release, rating;
- var json = { title : "", release : "", rating : ""};
+        getInformationAboutFilm(movie_url);
 
- $('.title_wrapper h1 a').filter(function(){
- var data = $(this);
- json.release = data.text();
- });
+        setTimeout(function () {
 
- $('.ratingValue :nth-child(1) span').filter(function () {
- var data = $(this);
- json.rating = data.text();
- });
+            console.log(films);
+            response.write(JSON.stringify(films));
+            response.end();
 
- $('.title_wrapper>h1').filter(function () {
- var data = $(this);
+        }, 10000);
 
- console.log(data.contents());
- title = data.contents()[0].data;
- json.title = title;
- });
+    });
+}
 
- console.log(json);
- }
- });*/
+function NameHandler(request, response) {
+    full_name_actor = request.url.replace('/actor=', '');
+    actor_name = full_name_actor.split('_')[0];
+    actor_surname = full_name_actor.split('_')[1];
+
+    result = {"name":full_name_actor, 'films': '', 'top 3': ''};
+
+    films = [];
+    top3films = {};
+
+    request.on('data', function (data) {
+
+        findActor(actor_name, actor_surname);
+
+        setTimeout(function () {
+            result['films'] = films;
+            console.log(top3films);
+            result['top 3'] = top3films;
+            response.write(JSON.stringify(result));
+            response.end();
+
+        }, 20000);
+
+    });
+
+
+}
+
+function CompareHandler (request, response) {
+    full_name_actor = request.url.replace('/compare=', '');
+    name1 = full_name_actor.split('_')[0];
+    surname1 = full_name_actor.split('_')[1];
+    name2 = full_name_actor.split('_')[2];
+    surname2 = full_name_actor.split('_')[3];
+
+    actors = [];
+    wspólneFilmy = 0;
+
+    actors.push({Imie: name1, Nazwisko: surname1});
+    actors.push({Imie: name2, Nazwisko: surname2});
+
+    console.log(actors);
+
+    compareActorsMuvis(actors);
+
+    setTimeout(function () {
+        console.log(wspólneFilmy);
+        response.write(JSON.stringify({'common films': wspólneFilmy}));
+        response.end();
+
+    }, 100000);
+
+
+
+}
+
+function handleRequest(request, response){
+
+    address = request.url.split('=');
+
+        switch(address[0]){
+            case '/url':
+                UrlHandler(request, response);
+                break;
+
+            case '/actor':
+                NameHandler(request, response);
+                break;
+            case '/compare':
+                CompareHandler(request, response)
+                break;
+        }
+}
+
+
+
+function runServer() {
+
+    var server = http.createServer(handleRequest);
+
+    server.listen(3000, function () {
+        console.log("Slucham....");
+    });
+}
+
+runServer();
+
+
+
+// ZEROWANIE FILMS ! DONE
+// resetowanie actors ! DONE
+// resetowanie ilości wspólnych filmów DONE
+// nie działa mi compare dla Emmy Watson i Toma Hanksa -> wypisuje 23 filmy :v
