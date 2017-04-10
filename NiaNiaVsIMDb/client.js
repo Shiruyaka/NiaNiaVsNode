@@ -76,6 +76,32 @@ function makeCompareRequest(name_1, surname_1, name_2, surname_2, data) {
     req.end();
 }
 
-makeUrlRequest("http://www.imdb.com/title/tt3682448/?ref_=nm_flmg_act_9", 'wut');
+//makeUrlRequest("http://www.imdb.com/title/tt3682448/?ref_=nm_flmg_act_9", 'wut');
 //makeNameRequest("Tom", "Hanks", "wut");
-//makeCompareRequest('Matt', 'Damon', 'Robin', 'Williams', 'wut');
+//makeCompareRequest('Emma', 'Watson', 'Robin', 'Williams', 'wut');
+
+var readline = require('readline');
+var rl = readline.createInterface(process.stdin, process.stdout);
+rl.setPrompt('');
+rl.prompt();
+
+rl.on('line', function(line) {
+    if (line === "exit") rl.close();
+    rl.prompt();
+    names = line.split(' ');
+
+    if (names.length == 4){
+        console.log('makeCompareRequest');
+        makeCompareRequest(names[0], names[1], names[2], names[3], 'wut');
+    }
+    else if (names.length == 2){
+        console.log('makeNameRequest');
+        makeNameRequest(names[0], names[1], 'wut');
+    }
+    else if (names.length == 1){
+        console.log('url');
+        makeUrlRequest(names[0], 'wut');
+    }
+}).on('close',function(){
+    process.exit(0);
+});
